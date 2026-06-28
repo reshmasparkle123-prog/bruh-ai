@@ -1,4 +1,4 @@
-# 💀 BRUH — Your AI Bestie for Students
+#  BRUH — Your AI Bestie for Students
 
 > Learn. Practice. Get Hired. No Cap.
 
@@ -10,12 +10,12 @@ BRUH is a Gen Z–coded AI study companion that explains concepts, quizzes you, 
 
 ## Features
 
-- 🧠 **Learn mode** — concepts explained with relatable analogies, not jargon
-- 💪 **Practice mode** — MCQs with instant feedback
-- 🎤 **Interview mode** — mock interview practice with honest, constructive feedback
-- 💀 **FAAAHHH Legacy mode** — high-intensity quiz mode with audio feedback on wrong answers
-- 🏆 Streaks, XP, badges, and a leaderboard to keep users engaged
-- 🎮 Custom gaming-inspired dark UI built from scratch (no UI library)
+-  **Learn mode** — concepts explained with relatable analogies, not jargon
+- **Practice mode** — MCQs with instant feedback
+-  **Interview mode** — mock interview practice with honest, constructive feedback
+-  **FAAAHHH Legacy mode** — high-intensity quiz mode with audio feedback on wrong answers
+-  Streaks, XP, badges, and a leaderboard to keep users engaged
+-  Custom gaming-inspired dark UI built from scratch (no UI library)
 
 ## Tech Stack
 
