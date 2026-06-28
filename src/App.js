@@ -32,9 +32,22 @@ const HEATMAP = [
   'l1','l2','l3','l3','today','',''
 ];
 
+let globalAudioCtx = null;
+
+function getAudioCtx() {
+  if (!globalAudioCtx) {
+    globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (globalAudioCtx.state === 'suspended') {
+    globalAudioCtx.resume();
+  }
+  return globalAudioCtx;
+}
+
 function playSound(type) {
+  console.log('🔊 Playing sound:', type);
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
     if (type === 'send') {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
@@ -52,16 +65,25 @@ function playSound(type) {
       g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
       o.start(); o.stop(ctx.currentTime + 0.35);
     } else if (type === 'faahh') {
-      [300, 250, 200, 150, 100].forEach((f, i) => {
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.type = 'sawtooth';
-        o.frequency.value = f;
-        g.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.05);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.05 + 0.15);
-        o.start(ctx.currentTime + i * 0.05);
-        o.stop(ctx.currentTime + i * 0.05 + 0.15);
-      });
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(400, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.6);
+      g.gain.setValueAtTime(0.6, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
+      o.start(); o.stop(ctx.currentTime + 0.7);
+
+      // Second hit
+      const o2 = ctx.createOscillator(), g2 = ctx.createGain();
+      o2.connect(g2); g2.connect(ctx.destination);
+      o2.type = 'sawtooth';
+      o2.frequency.setValueAtTime(300, ctx.currentTime + 0.2);
+      o2.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.8);
+      g2.gain.setValueAtTime(0.4, ctx.currentTime + 0.2);
+      g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+      o2.start(ctx.currentTime + 0.2);
+      o2.stop(ctx.currentTime + 0.9);
     } else if (type === 'slay') {
       [523, 659, 784, 1046].forEach((f, i) => {
         const o = ctx.createOscillator(), g = ctx.createGain();
@@ -73,7 +95,9 @@ function playSound(type) {
         o.stop(ctx.currentTime + i * 0.1 + 0.15);
       });
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error('Sound error:', e);
+  }
 }
 
 export default function App() {
@@ -92,6 +116,7 @@ export default function App() {
   const [showLB, setShowLB] = useState(false);
   const [whipActive, setWhipActive] = useState(false);
   const [shaking, setShaking] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
   const chatRef = useRef(null);
 
   useEffect(() => {
@@ -99,6 +124,23 @@ export default function App() {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages, loading]);
+
+  // Unlock audio on first click anywhere
+  useEffect(() => {
+    const unlock = () => {
+      if (!audioUnlocked) {
+        try {
+          const ctx = getAudioCtx();
+          ctx.resume().then(() => {
+            setAudioUnlocked(true);
+            console.log('🔊 Audio unlocked!');
+          });
+        } catch(e) {}
+      }
+    };
+    document.addEventListener('click', unlock);
+    return () => document.removeEventListener('click', unlock);
+  }, [audioUnlocked]);
 
   const earned = BADGES.filter(b => b.condition(stats));
   const lb = mode === 'legacy' ? LEADERBOARD_LEGACY : LEADERBOARD_NORMAL;
@@ -119,17 +161,17 @@ export default function App() {
       }]);
     }
   };
-const sendMessage = async (text) => {
-  // Unlock audio on first interaction
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    await ctx.resume();
-  } catch(e) {}
-  
-  const msg = text || input;
+
   const sendMessage = async (text) => {
     const msg = text || input;
     if (!msg.trim() || loading) return;
+
+    // Unlock + resume audio
+    try {
+      const ctx = getAudioCtx();
+      await ctx.resume();
+    } catch(e) {}
+
     setInput('');
     playSound('send');
 
@@ -154,24 +196,23 @@ const sendMessage = async (text) => {
       });
 
       const reply = res.data.reply;
-const isWrong = reply.toLowerCase().includes('wrong') ||
-  reply.toLowerCase().includes('incorrect') ||
-  reply.toLowerCase().includes('nahi') ||
-  reply.toLowerCase().includes('faaahhh') ||
-  reply.toLowerCase().includes('galat') ||
-  reply.toLowerCase().includes('sorry');
+      console.log('Reply:', reply.substring(0, 100));
 
-// Always play sound on response
-if (mode === 'legacy') {
-  playSound('faahh');
-} else {
-  playSound('slay');
-}
-
-      if (isWrong && mode === 'legacy') {
-        playSound('faahh');
-        triggerWhip(false);
-      } else if (!isWrong) {
+      // Always play sound in legacy mode
+      if (mode === 'legacy') {
+        const isWrong = reply.toLowerCase().includes('wrong') ||
+          reply.toLowerCase().includes('incorrect') ||
+          reply.toLowerCase().includes('galat') ||
+          reply.toLowerCase().includes('faaahhh') ||
+          reply.toLowerCase().includes('nahi');
+        
+        if (isWrong) {
+          playSound('faahh');
+          triggerWhip(false);
+        } else {
+          playSound('slay');
+        }
+      } else {
         playSound('slay');
       }
 
@@ -196,9 +237,9 @@ if (mode === 'legacy') {
   const switchMode = (m) => {
     setMode(m);
     const intros = {
-      learn: 'learn mode activated 🧠 kya concept samjhna hai? no cap main full detail mein explain karunga fr fr',
-      practice: 'practice mode 💪 ready ho? MCQs aayenge — FAAAHHH bhi aayega agar wrong gaya 😭',
-      interview: 'interview mode 🎤 chal shuru karte hain. tell me about yourself — and make it actually interesting bestie',
+      learn: 'learn mode — kya concept samjhna hai bestie? fr fr no judgment 🧠',
+      practice: 'practice mode — ready ho? MCQs aayenge — FAAAHHH bhi aayega agar wrong gaya 😭',
+      interview: 'interview mode 🎤 chal shuru karte hain. tell me about yourself — and make it slay',
       legacy: 'FAAAHHH LEGACY MODE ACTIVATED 💀💀💀\n\nbestie... are you sure?? no mercy from here.\nwrong answer = FAAAHHH sound + roast\nright answer = slay moment\n\nask me ANYTHING. i dare you. 😈'
     };
     setMessages([{ who: 'bruh', text: intros[m], legacy: m === 'legacy' }]);
@@ -319,7 +360,7 @@ if (mode === 'legacy') {
       </div>
 
       <div className="diva-card">
-        <div className="diva-title">👑 diva of the week</div>
+        <div class="diva-title">👑 diva of the week</div>
         <div className="diva-name">Aditya V.</div>
         <div className="diva-countdown">next reveal in 5 days • faaahhh legacy champion</div>
       </div>
@@ -330,7 +371,7 @@ if (mode === 'legacy') {
             {mode === 'legacy' ? '💀 faaahhh legacy board' : '🏆 leaderboard'}
           </div>
           <button onClick={() => setShowLB(!showLB)}
-            style={{ background: 'transparent', border: 'none', color: '#7F77DD', fontSize: 11, cursor: 'pointer' }}>
+            style={{ background: 'transparent', border: 'none', color: '#00FF88', fontSize: 11, cursor: 'pointer' }}>
             {showLB ? 'hide' : 'show'}
           </button>
         </div>
