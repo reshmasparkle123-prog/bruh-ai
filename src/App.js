@@ -119,7 +119,14 @@ export default function App() {
       }]);
     }
   };
-
+const sendMessage = async (text) => {
+  // Unlock audio on first interaction
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    await ctx.resume();
+  } catch(e) {}
+  
+  const msg = text || input;
   const sendMessage = async (text) => {
     const msg = text || input;
     if (!msg.trim() || loading) return;
