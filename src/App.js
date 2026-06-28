@@ -147,10 +147,19 @@ export default function App() {
       });
 
       const reply = res.data.reply;
-      const isWrong = reply.toLowerCase().includes('wrong') ||
-        reply.toLowerCase().includes('incorrect') ||
-        reply.toLowerCase().includes('nahi') ||
-        reply.toLowerCase().includes('faaahhh');
+const isWrong = reply.toLowerCase().includes('wrong') ||
+  reply.toLowerCase().includes('incorrect') ||
+  reply.toLowerCase().includes('nahi') ||
+  reply.toLowerCase().includes('faaahhh') ||
+  reply.toLowerCase().includes('galat') ||
+  reply.toLowerCase().includes('sorry');
+
+// Always play sound on response
+if (mode === 'legacy') {
+  playSound('faahh');
+} else {
+  playSound('slay');
+}
 
       if (isWrong && mode === 'legacy') {
         playSound('faahh');
