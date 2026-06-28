@@ -52,47 +52,56 @@ function playSound(type) {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
       o.frequency.value = 600; o.type = 'sine';
-      g.gain.setValueAtTime(0.1, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-      o.start(); o.stop(ctx.currentTime + 0.1);
+      g.gain.setValueAtTime(0.2, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      o.start(); o.stop(ctx.currentTime + 0.15);
     } else if (type === 'whip') {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
       o.type = 'sawtooth';
       o.frequency.setValueAtTime(1200, ctx.currentTime);
-      o.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.3);
-      g.gain.setValueAtTime(0.5, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-      o.start(); o.stop(ctx.currentTime + 0.35);
+      o.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.4);
+      g.gain.setValueAtTime(0.7, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+      o.start(); o.stop(ctx.currentTime + 0.45);
     } else if (type === 'faahh') {
       const o = ctx.createOscillator(), g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
       o.type = 'sawtooth';
-      o.frequency.setValueAtTime(400, ctx.currentTime);
-      o.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.6);
-      g.gain.setValueAtTime(0.6, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
-      o.start(); o.stop(ctx.currentTime + 0.7);
+      o.frequency.setValueAtTime(500, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.8);
+      g.gain.setValueAtTime(0.8, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
+      o.start(); o.stop(ctx.currentTime + 0.9);
 
-      // Second hit
       const o2 = ctx.createOscillator(), g2 = ctx.createGain();
       o2.connect(g2); g2.connect(ctx.destination);
       o2.type = 'sawtooth';
-      o2.frequency.setValueAtTime(300, ctx.currentTime + 0.2);
-      o2.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.8);
-      g2.gain.setValueAtTime(0.4, ctx.currentTime + 0.2);
-      g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.9);
-      o2.start(ctx.currentTime + 0.2);
-      o2.stop(ctx.currentTime + 0.9);
+      o2.frequency.setValueAtTime(400, ctx.currentTime + 0.15);
+      o2.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.9);
+      g2.gain.setValueAtTime(0.6, ctx.currentTime + 0.15);
+      g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0);
+      o2.start(ctx.currentTime + 0.15);
+      o2.stop(ctx.currentTime + 1.0);
+
+      const o3 = ctx.createOscillator(), g3 = ctx.createGain();
+      o3.connect(g3); g3.connect(ctx.destination);
+      o3.type = 'square';
+      o3.frequency.setValueAtTime(200, ctx.currentTime + 0.3);
+      o3.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 1.0);
+      g3.gain.setValueAtTime(0.4, ctx.currentTime + 0.3);
+      g3.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.1);
+      o3.start(ctx.currentTime + 0.3);
+      o3.stop(ctx.currentTime + 1.1);
     } else if (type === 'slay') {
       [523, 659, 784, 1046].forEach((f, i) => {
         const o = ctx.createOscillator(), g = ctx.createGain();
         o.connect(g); g.connect(ctx.destination);
         o.frequency.value = f; o.type = 'sine';
-        g.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.1);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.15);
+        g.gain.setValueAtTime(0.25, ctx.currentTime + i * 0.1);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.1 + 0.2);
         o.start(ctx.currentTime + i * 0.1);
-        o.stop(ctx.currentTime + i * 0.1 + 0.15);
+        o.stop(ctx.currentTime + i * 0.1 + 0.2);
       });
     }
   } catch (e) {
@@ -125,7 +134,6 @@ export default function App() {
     }
   }, [messages, loading]);
 
-  // Unlock audio on first click anywhere
   useEffect(() => {
     const unlock = () => {
       if (!audioUnlocked) {
@@ -165,8 +173,6 @@ export default function App() {
   const sendMessage = async (text) => {
     const msg = text || input;
     if (!msg.trim() || loading) return;
-
-    // Unlock + resume audio
     try {
       const ctx = getAudioCtx();
       await ctx.resume();
@@ -174,7 +180,6 @@ export default function App() {
 
     setInput('');
     playSound('send');
-
     setMessages(prev => [...prev, { who: 'user', text: msg }]);
     setLoading(true);
 
@@ -191,21 +196,24 @@ export default function App() {
         message: msg,
         mode,
         systemExtra: mode === 'legacy'
-          ? ' FAAAHHH LEGACY MODE: be extra brutal and savage. scream FAAAHHH for wrong answers. use 💀 everywhere. roast hard but still teach.'
-          : ' Give detailed, thorough explanations. Cover the concept fully with examples, time complexity, use cases. Be genuinely helpful while staying Gen Z.'
+          ? ' FAAAHHH LEGACY MODE: be extra brutal and savage. use words like FAAAHHH, galat, wrong, incorrect when user is wrong. scream FAAAHHH 💀. roast hard but still teach.'
+          : ' Give detailed thorough explanations. Cover concept fully with examples. Be genuinely helpful while staying Gen Z Hinglish.'
       });
 
       const reply = res.data.reply;
       console.log('Reply:', reply.substring(0, 100));
 
-      // Always play sound in legacy mode
+      const isWrong = reply.toLowerCase().includes('wrong') ||
+        reply.toLowerCase().includes('incorrect') ||
+        reply.toLowerCase().includes('galat') ||
+        reply.toLowerCase().includes('faaahhh') ||
+        reply.toLowerCase().includes('nahi') ||
+        reply.toLowerCase().includes('not o(n') ||
+        reply.toLowerCase().includes('actually') ||
+        reply.toLowerCase().includes('nope') ||
+        reply.toLowerCase().includes('nahh');
+
       if (mode === 'legacy') {
-        const isWrong = reply.toLowerCase().includes('wrong') ||
-          reply.toLowerCase().includes('incorrect') ||
-          reply.toLowerCase().includes('galat') ||
-          reply.toLowerCase().includes('faaahhh') ||
-          reply.toLowerCase().includes('nahi');
-        
         if (isWrong) {
           playSound('faahh');
           triggerWhip(false);
@@ -255,22 +263,10 @@ export default function App() {
       </div>
 
       <div className="stats-hud">
-        <div className="hud-card">
-          <div className="hud-num">{stats.score}</div>
-          <div className="hud-label">XP</div>
-        </div>
-        <div className="hud-card">
-          <div className="hud-num">{stats.streak}</div>
-          <div className="hud-label">Streak</div>
-        </div>
-        <div className="hud-card">
-          <div className="hud-num">{stats.totalMessages}</div>
-          <div className="hud-label">Msgs</div>
-        </div>
-        <div className="hud-card">
-          <div className="hud-num">{earned.length}</div>
-          <div className="hud-label">Badges</div>
-        </div>
+        <div className="hud-card"><div className="hud-num">{stats.score}</div><div className="hud-label">XP</div></div>
+        <div className="hud-card"><div className="hud-num">{stats.streak}</div><div className="hud-label">Streak</div></div>
+        <div className="hud-card"><div className="hud-num">{stats.totalMessages}</div><div className="hud-label">Msgs</div></div>
+        <div className="hud-card"><div className="hud-num">{earned.length}</div><div className="hud-label">Badges</div></div>
       </div>
 
       <div className="streak-section">
@@ -279,9 +275,7 @@ export default function App() {
           <span className="streak-count">{stats.streak} days</span>
         </div>
         <div className="heatmap">
-          {HEATMAP.map((c, i) => (
-            <div key={i} className={`heat-cell ${c}`} />
-          ))}
+          {HEATMAP.map((c, i) => <div key={i} className={`heat-cell ${c}`} />)}
         </div>
       </div>
 
@@ -301,9 +295,7 @@ export default function App() {
       </div>
 
       {mode === 'legacy' && (
-        <div className="legacy-banner">
-          💀 FAAAHHH LEGACY — no mercy zone • pure roast • actual learning 💀
-        </div>
+        <div className="legacy-banner">💀 FAAAHHH LEGACY — no mercy zone • pure roast • actual learning 💀</div>
       )}
 
       <div className="chat-area" ref={chatRef}>
@@ -330,9 +322,7 @@ export default function App() {
       </div>
 
       <div className="input-area">
-        <button className="whip-btn" onClick={() => triggerWhip(true)} title="whip it!">
-          🎵
-        </button>
+        <button className="whip-btn" onClick={() => triggerWhip(true)}>🎵</button>
         <input className="bruh-input" value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && sendMessage()}
@@ -360,18 +350,16 @@ export default function App() {
       </div>
 
       <div className="diva-card">
-        <div class="diva-title">👑 diva of the week</div>
+        <div className="diva-title">👑 diva of the week</div>
         <div className="diva-name">Aditya V.</div>
         <div className="diva-countdown">next reveal in 5 days • faaahhh legacy champion</div>
       </div>
 
       <div className="leaderboard" style={{ marginTop: 8 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <div className="lb-title">
-            {mode === 'legacy' ? '💀 faaahhh legacy board' : '🏆 leaderboard'}
-          </div>
+          <div className="lb-title">{mode === 'legacy' ? '💀 faaahhh legacy board' : '🏆 leaderboard'}</div>
           <button onClick={() => setShowLB(!showLB)}
-            style={{ background: 'transparent', border: 'none', color: '#00FF88', fontSize: 11, cursor: 'pointer' }}>
+            style={{ background: 'transparent', border: 'none', color: '#00D4FF', fontSize: 11, cursor: 'pointer' }}>
             {showLB ? 'hide' : 'show'}
           </button>
         </div>
